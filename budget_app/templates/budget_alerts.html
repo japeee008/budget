@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Budget App - Budget Alerts</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #f8f9fa;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #343a40;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+    }
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    .sidebar a {
+      color: #adb5bd;
+      text-decoration: none;
+      padding: 12px 20px;
+      display: block;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: #495057;
+      color: #fff;
+    }
+
+    /* Main content area */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header / Navbar */
+    .header {
+      background: #fff;
+      padding: 15px 20px;
+      border-bottom: 1px solid #ddd;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Content area */
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* Cards */
+    .card {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .slider {
+      width: 100%;
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .status-active {
+      color: green;
+      font-weight: bold;
+    }
+    .delete-btn {
+      color: red;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Budget App</h2>
+    <a href="#">Home</a>
+    <a href="#">Expenses</a>
+    <a href="#">Budgets</a>
+    <a href="#" class="active">Budget Alerts</a>
+    <a href="#">Reports</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      Budget Alerts
+    </div>
+
+    <div class="content">
+
+      <!-- Set a New Budget Alert -->
+      <div class="card">
+        <h2>Set a New Budget Alert</h2>
+        <p>Define your spending limits and how you want to be notified.</p>
+
+        <form id="alertForm">
+          <label>Amount Limit ($)</label>
+          <input type="number" id="limit" placeholder="e.g., 500" required>
+
+          <label>Category</label>
+          <select id="category" required>
+            <option value="Overall">Overall Budget</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Leisure">Leisure</option>
+            <option value="School Supplies">School Supplies</option>
+          </select>
+
+          <label>Trigger Threshold: <span id="thresholdValue">80</span>% of Budget</label>
+          <input type="range" id="threshold" class="slider" min="10" max="100" value="80">
+
+          <p>An alert will be sent when your spending in the selected category reaches this percentage of the limit.</p>
+
+          <label>Receive Notifications Via</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" value="Dashboard"> Dashboard</label>
+            <label><input type="checkbox" value="Email"> Email</label>
+            <label><input type="checkbox" value="Push"> Push Notification</label>
+          </div>
+
+          <button type="submit">Create Alert</button>
+        </form>
+      </div>
+
+      <!-- Active Alerts Table -->
+      <div class="card">
+        <h2>Your Active Budget Alerts</h2>
+        <table id="alertsTable">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Limit</th>
+              <th>Trigger</th>
+              <th>Notifications</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Alerts will be added here -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('alertForm');
+    const thresholdInput = document.getElementById('threshold');
+    const thresholdValue = document.getElementById('thresholdValue');
+    const alertsTable = document.getElementById('alertsTable').querySelector('tbody');
+
+    // Update threshold display
+    thresholdInput.addEventListener('input', () => {
+      thresholdValue.textContent = thresholdInput.value;
+    });
+
+    // Add new alert row
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const category = document.getElementById('category').value;
+      const limit = document.getElementById('limit').value;
+      const trigger = thresholdInput.value;
+      const notifications = Array.from(document.querySelectorAll('.checkbox-group input:checked'))
+        .map(cb => cb.value).join(', ') || 'None';
+
+      const row = alertsTable.insertRow();
+      row.innerHTML = `
+        <td>${category}</td>
+        <td>$${limit}</td>
+        <td>${trigger}%</td>
+        <td>${notifications}</td>
+        <td class="status-active">Active</td>
+        <td><span class="delete-btn">🗑️</span></td>
+      `;
+
+      // Delete button
+      row.querySelector('.delete-btn').addEventListener('click', () => {
+        row.remove();
+      });
+
+      // Reset form
+      form.reset();
+      thresholdInput.value = 80;
+      thresholdValue.textContent = 80;
+    });
+  </script>
+</body>
+</html>
